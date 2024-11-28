@@ -16,5 +16,7 @@ def main():
     print(f"training images after flattening by chunk: {train_chunk.shape}")
     print(f"test images after flattening by chunk: {test_chunk.shape}")
 
+    print(f"training images after histogram vectorization: {train_histogram.shape}")
+    print(f"test images after histogram vectorization: {test_histogram.shape}")
 if __name__ == "__main__":
     main()
