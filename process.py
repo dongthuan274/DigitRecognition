@@ -27,15 +27,33 @@ def load_mnist(path, kind="train"):
 def flat_vectorize(images):
     pass
 
-def chunk_vectorize(images):
-    pass
+def chunk_flattening(images):
+    chunk_matrix = []
+    rows_per_chunk, cols_per_chunk = 4, 4
+
+    for image in images:
+        chunk_vector = (
+            (image.reshape(
+                image.shape[0] // rows_per_chunk,
+                rows_per_chunk,
+                image.shape[1] // cols_per_chunk,
+                cols_per_chunk
+            )
+            .mean(axis=(1, 3))
+            / 255.0
+            )
+            .flatten()
+        )
+        chunk_matrix.append(chunk_vector)
+    
+    return np.array(chunk_matrix)
 
 def histogram_vectorize(images):
     pass
 
 def extract_features(images):
     flat_vector = flat_vectorize(images)
-    chunk_vector = chunk_vectorize(images)
+    chunk_matrix = chunk_flattening(images)
     histogram_vector = histogram_vectorize(images)
 
-    return flat_vector, chunk_vector, histogram_vector
+    return flat_vector, chunk_matrix, histogram_vector
