@@ -25,7 +25,8 @@ def load_mnist(path, kind="train"):
     return images, labels
 
 def flat_vectorize(images):
-    pass
+    flat_vectors = [image.flatten() / 255.0 for image in images]
+    return np.array(flat_vectors)
 
 def chunk_vectorize(images):
     pass
