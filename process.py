@@ -25,12 +25,18 @@ def load_mnist(path, kind="train"):
     return images, labels
 
 def flat_vectorize(images):
+    '''
+    flatten() convert image matrix (2D) to vector (1D) using
+    '''
     flat_vectors = [image.flatten() / 255.0 for image in images]
     return np.array(flat_vectors)
 
-def chunk_flattening(images):
-    chunk_matrix = []
-    rows_per_chunk, cols_per_chunk = 4, 4
+def chunk_vectorize(images, rows_per_chunk = 4, cols_per_chunk = 4):
+    '''
+    reshape() image matrix (2D) to 4D
+    mean() to calculate average value of every chunk
+    '''
+    chunk_vectors = []
 
     for image in images:
         chunk_vector = (
@@ -45,25 +51,29 @@ def chunk_flattening(images):
             )
             .flatten()
         )
-        chunk_matrix.append(chunk_vector)
-    
-    return np.array(chunk_matrix)
+        chunk_vectors.append(chunk_vector)
+
+    return np.array(chunk_vectors)
 
 def histogram_vectorize(images):
+    '''
+    numsbin = number of blocks
+    histogram() calculate frequency of element in 1D array
+    '''
     nums_bin = 256
-    histograms = []
-    
+    histogram_vectors = []
+
     for image in images:
         flat_image = image.flatten()
-        histogram, ignore = np.histogram(flat_image, bins = nums_bin, range = (0, 255))
-        histogram = histogram / (IMG_SIZE*IMG_SIZE)
-        histograms.append(histogram)
-        
-    return np.array(histograms)
+        histogram_vector, ignore = np.histogram(flat_image, bins = nums_bin, range = (0, 255))
+        histogram_vector = histogram_vector / (IMG_SIZE*IMG_SIZE)
+        histogram_vectors.append(histogram_vector)
+
+    return np.array(histogram_vectors)
 
 def extract_features(images):
-    flat_vector = flat_vectorize(images)
-    chunk_matrix = chunk_flattening(images)
-    histogram_vector = histogram_vectorize(images)
+    flat_vectors = flat_vectorize(images)
+    chunk_vectors = chunk_vectorize(images)
+    histogram_vectors = histogram_vectorize(images)
 
-    return flat_vector, chunk_matrix, histogram_vector
+    return flat_vectors, chunk_vectors, histogram_vectors
