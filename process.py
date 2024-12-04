@@ -77,3 +77,23 @@ def extract_features(images):
     histogram_vectors = histogram_vectorize(images)
 
     return flat_vectors, chunk_vectors, histogram_vectors
+
+def calcDist(vectorized_image1, vectorized_image2):
+    return np.sqrt(np.sum((vectorized_image1 - vectorized_image2) ** 2))
+
+def combine(vectorized_images, labels):
+    combineList = []
+    for vectorized_image, label in zip(vectorized_images, labels):
+        combineList.append([vectorized_image, label])
+    return combineList
+
+def predict_label(vectorized_image, combineTestImages, k):
+    distances = []
+    for i in combineTestImages:
+        dist = calcDist(vectorized_image, i[0])
+        distances.append([dist, i[1]])
+    distances.sort(key=lambda x: x[0])
+    nearest_distances = distances[:k]
+    nearest_labels = [label[1] for label in nearest_distances]
+    most_common_label = max(nearest_labels, key=nearest_labels.count)
+    return most_common_label

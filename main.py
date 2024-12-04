@@ -16,5 +16,18 @@ def main():
 
     print(f"HISTOGRAM training images: {train_histogram.shape}\t\tHISTOGRAM test images: {test_histogram.shape}")
 
+    combineTrain_flat = process.combine(train_flat, y_train)
+    combineTrain_chunk = process.combine(train_chunk, y_train)
+    combineTrain_histogram = process.combine(train_histogram, y_train)
+    combineTest_flat = process.combine(test_flat, y_test)
+    combineTest_chunk = process.combine(test_chunk, y_test)
+    combineTest_histogram = process.combine(test_histogram, y_test)
+    
+    #test vai cai
+    k = 100
+    temp = 4124;
+    print("predict: ", process.predict_label(combineTest_flat[temp][0], combineTrain_flat, k),"ril: ", combineTest_flat[temp][1])
+    print("predict: ", process.predict_label(combineTest_chunk[temp][0], combineTrain_chunk, k),"ril: ", combineTest_chunk[temp][1])
+    print("predict: ", process.predict_label(combineTest_histogram[temp][0], combineTrain_histogram, k),"ril: ", combineTest_histogram[temp][1])
 if __name__ == "__main__":
     main()
