@@ -1,4 +1,5 @@
 import process
+import predict
 
 def main():
     x_train, y_train = process.load_mnist("data/", kind="train")
@@ -7,48 +8,43 @@ def main():
     train_flat, train_chunk, train_histogram = process.extract_features(x_train)
     test_flat, test_chunk, test_histogram = process.extract_features(x_test)
 
-    print(f"training images: {x_train.shape}\t\ttest images: {x_test.shape}")
-    print(f"train labels: {y_train.shape}\t\t\ttest labels: {y_test.shape}")
+    combined_train_flat = process.combine(train_flat, y_train)
+    combined_train_chunk = process.combine(train_chunk, y_train)
+    combined_train_histogram = process.combine(train_histogram, y_train)
+    combined_test_flat = process.combine(test_flat, y_test)
+    combined_test_chunk = process.combine(test_chunk, y_test)
+    combined_test_histogram = process.combine(test_histogram, y_test)
 
-    print(f"FLAT training images: {train_flat.shape}\t\tFLAT test images: {test_flat.shape}")
+    '''
+    #Loop through K and test with t10k, plot accuracy
 
-    print(f"CHUNK training images: {train_chunk.shape}\t\tCHUNK test images: {test_chunk.shape}")
-
-    print(f"HISTOGRAM training images: {train_histogram.shape}\t\tHISTOGRAM test images: {test_histogram.shape}")
-
-    combineTrain_flat = process.combine(train_flat, y_train)
-    combineTrain_chunk = process.combine(train_chunk, y_train)
-    combineTrain_histogram = process.combine(train_histogram, y_train)
-    combineTest_flat = process.combine(test_flat, y_test)
-    combineTest_chunk = process.combine(test_chunk, y_test)
-    combineTest_histogram = process.combine(test_histogram, y_test)
-    
     flat_nearest_vectors = 'data/flat_nearest_vectors'
     chunk_nearest_vectors = 'data/chunk_nearest_vectors'
     histogram_nearest_vectors = 'data/histogram_nearest_vectors'
 
-    process.gen_nearest_k_vectors(combineTest_flat, combineTrain_flat, flat_nearest_vectors, 1000)
-    process.gen_nearest_k_vectors(combineTest_chunk, combineTrain_chunk, chunk_nearest_vectors, 1000)
-    process.gen_nearest_k_vectors(combineTest_histogram, combineTrain_histogram, histogram_nearest_vectors, 1000)
-    
-    flat_data = process.load_pkl_file(flat_nearest_vectors)
-    chunk_data = process.load_pkl_file(chunk_nearest_vectors)
-    histogram_data = process.load_pkl_file(histogram_nearest_vectors)
-    
-    #test vai cai
-    k = 100
-    temp = 4124;
-    print("predict: ", process.predict_label_using_pkl(flat_data[temp], k),"ril: ", combineTest_flat[temp][1])
-    print("predict: ", process.predict_label_using_pkl(chunk_data[temp], k),"ril: ", combineTest_chunk[temp][1])
-    print("predict: ", process.predict_label_using_pkl(histogram_data[temp], k),"ril: ", combineTest_histogram[temp][1])
+    predict.gen_nearest_k_vectors(combined_test_flat, combined_train_flat, flat_nearest_vectors, k = predict.K_MAX)
+    predict.gen_nearest_k_vectors(combined_test_chunk, combined_train_chunk, chunk_nearest_vectors)
+    predict.gen_nearest_k_vectors(combined_test_histogram, combined_train_histogram, histogram_nearest_vectors)
 
-    print("new image predict: ", process.predict_label(combineTest_flat[temp][0],combineTrain_flat, k), "ril: ", combineTest_flat[temp][1])
-    print("new image predict: ", process.predict_label(combineTest_chunk[temp][0],combineTrain_chunk, k), "ril: ", combineTest_chunk[temp][1])
-    print("new image predict: ", process.predict_label(combineTest_histogram[temp][0],combineTrain_histogram, k), "ril: ", combineTest_histogram[temp][1])
+    flat_data = predict.load_binary(flat_nearest_vectors)
+    chunk_data = predict.load_binary(chunk_nearest_vectors)
+    histogram_data = predict.load_binary(histogram_nearest_vectors)
 
-    k_values = range(5, 1000, 5)
-    process.graph_accuracy_vs_k_pkl(combineTest_flat, flat_data, k_values)
-    process.graph_accuracy_vs_k_pkl(combineTest_chunk, chunk_data, k_values)
-    process.graph_accuracy_vs_k_pkl(combineTest_histogram, histogram_data, k_values)
+    test_range = range(1, 1001)
+    predict.graph_accuracy_in_range(combined_test_flat, flat_data, test_range)
+    '''
+
+    extract_methods = {
+        0: "FLAT",
+        1: "CHUNK",
+        2: "HISTOGRAM"
+    }
+
+    print("ANS =", y_test[0])
+    results = predict.predict_with_methods(x_test[0], 10, extract_methods, combined_train_flat, combined_train_chunk, combined_train_histogram)
+
+    for method_name, answer in results:
+        print(f"{method_name}'s prediction: {answer}")
+
 if __name__ == "__main__":
     main()
