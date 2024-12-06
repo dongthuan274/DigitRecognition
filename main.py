@@ -1,6 +1,8 @@
 import process
 import predict
 
+K = 10
+
 def main():
     x_train, y_train = process.load_mnist("data/", kind="train")
     x_test, y_test = process.load_mnist("data/", kind="t10k")
@@ -41,7 +43,7 @@ def main():
     }
 
     print("ANS =", y_test[0])
-    results = predict.predict_with_methods(x_test[0], 10, extract_methods, combined_train_flat, combined_train_chunk, combined_train_histogram)
+    results = predict.predict_with_methods(x_test[0], K, extract_methods, combined_train_flat, combined_train_chunk, combined_train_histogram)
 
     for method_name, answer in results:
         print(f"{method_name}'s prediction: {answer}")
