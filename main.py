@@ -23,11 +23,32 @@ def main():
     combineTest_chunk = process.combine(test_chunk, y_test)
     combineTest_histogram = process.combine(test_histogram, y_test)
     
+    flat_nearest_vectors = 'data/flat_nearest_vectors'
+    chunk_nearest_vectors = 'data/chunk_nearest_vectors'
+    histogram_nearest_vectors = 'data/histogram_nearest_vectors'
+
+    process.gen_nearest_k_vectors(combineTest_flat, combineTrain_flat, flat_nearest_vectors, 1000)
+    process.gen_nearest_k_vectors(combineTest_chunk, combineTrain_chunk, chunk_nearest_vectors, 1000)
+    process.gen_nearest_k_vectors(combineTest_histogram, combineTrain_histogram, histogram_nearest_vectors, 1000)
+    
+    flat_data = process.load_pkl_file(flat_nearest_vectors)
+    chunk_data = process.load_pkl_file(chunk_nearest_vectors)
+    histogram_data = process.load_pkl_file(histogram_nearest_vectors)
+    
     #test vai cai
     k = 100
     temp = 4124;
-    print("predict: ", process.predict_label(combineTest_flat[temp][0], combineTrain_flat, k),"ril: ", combineTest_flat[temp][1])
-    print("predict: ", process.predict_label(combineTest_chunk[temp][0], combineTrain_chunk, k),"ril: ", combineTest_chunk[temp][1])
-    print("predict: ", process.predict_label(combineTest_histogram[temp][0], combineTrain_histogram, k),"ril: ", combineTest_histogram[temp][1])
+    print("predict: ", process.predict_label_using_pkl(flat_data[temp], k),"ril: ", combineTest_flat[temp][1])
+    print("predict: ", process.predict_label_using_pkl(chunk_data[temp], k),"ril: ", combineTest_chunk[temp][1])
+    print("predict: ", process.predict_label_using_pkl(histogram_data[temp], k),"ril: ", combineTest_histogram[temp][1])
+
+    print("new image predict: ", process.predict_label(combineTest_flat[temp][0],combineTrain_flat, k), "ril: ", combineTest_flat[temp][1])
+    print("new image predict: ", process.predict_label(combineTest_chunk[temp][0],combineTrain_chunk, k), "ril: ", combineTest_chunk[temp][1])
+    print("new image predict: ", process.predict_label(combineTest_histogram[temp][0],combineTrain_histogram, k), "ril: ", combineTest_histogram[temp][1])
+
+    k_values = range(5, 1000, 5)
+    process.graph_accuracy_vs_k_pkl(combineTest_flat, flat_data, k_values)
+    process.graph_accuracy_vs_k_pkl(combineTest_chunk, chunk_data, k_values)
+    process.graph_accuracy_vs_k_pkl(combineTest_histogram, histogram_data, k_values)
 if __name__ == "__main__":
     main()
