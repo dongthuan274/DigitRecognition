@@ -5,7 +5,7 @@ import process
 import predict
 import numpy as np
 
-K = 200
+K = 76
 
 extract_methods = {
     0: "FLAT",
