@@ -69,14 +69,14 @@ if option == "Draw":
         st.header('Draw a Digit')
 
         canvas_result = st_canvas(
-            fill_color="rgba(255, 255, 255, 1)",  # Nền màu trắng
-            stroke_width=25,                      # Độ dày nét vẽ
-            stroke_color="#000000",               # Màu nét vẽ (đen)
-            background_color="#FFFFFF",           # Nền canvas màu trắng
-            width=280,                            # Chiều rộng của canvas
-            height=280,                           # Chiều cao của canvas
-            drawing_mode="freedraw",              # Chế độ vẽ tự do
-            key="canvas"                          # Khóa cho canvas
+            fill_color          =   "rgba(255, 255, 255, 1)",  # Nền màu trắng
+            stroke_width        =   25,                        # Độ dày nét vẽ
+            stroke_color        =   "#000000",                 # Màu nét vẽ (đen)
+            background_color    =   "#FFFFFF",                 # Nền canvas màu trắng
+            width               =   280,                       # Chiều rộng của canvas
+            height              =   280,                       # Chiều cao của canvas
+            drawing_mode        =   "freedraw",                # Chế độ vẽ tự do
+            key                 =   "canvas"                   # Khóa cho canvas
         )
 
     with right:
