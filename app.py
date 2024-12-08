@@ -57,7 +57,7 @@ if option == "Upload Image":
         if uploaded_file is not None:
             raw_image = Image.open(uploaded_file)
             image_array = fix(raw_image)
-            # st.write(image_array)
+            st.write(image_array)
 
             if st.button("Submit"):
                 solve(image_array)
@@ -83,7 +83,7 @@ if option == "Draw":
         if canvas_result.image_data is not None:
             raw_image = Image.fromarray(canvas_result.image_data.astype('uint8'))
             image_array = fix(raw_image)
-            # st.write(image_array)
+            st.write(image_array)
 
             if st.button("Submit"):
                 solve(image_array)
