@@ -3,6 +3,7 @@ import os
 import numpy as np
 import pickle
 import matplotlib.pyplot as plt
+import csv
 import process
 
 K_MAX = 1000
@@ -64,8 +65,8 @@ def predict_with_methods(image, k, extract_methods, *methods_data):
     return results
 
 def graph_accuracy_in_range(test_features_labels, nearest_neighbors, test_range):
-    accuracies = []
     true_labels = np.array([label for ignore, label in test_features_labels])
+    accuracies = []
     for k in test_range:
         predictions = []
         for i in range(len(nearest_neighbors)):
@@ -76,17 +77,75 @@ def graph_accuracy_in_range(test_features_labels, nearest_neighbors, test_range)
         accuracy = correct_predictions / len(test_features_labels)
         accuracies.append(accuracy)
 
-    plt.plot(test_range, accuracies, color="green")
+    # plt.plot(test_range, accuracies, color="green")
+    # plt.xlim(min(test_range)-1, max(test_range)+1)
+    # plt.ylim(0, 1)
+
+    # plt.title("Model Accuracy")
+    # plt.ylabel("Accuracy")
+    # plt.xlabel("K (Number of neighbors)")
+    # plt.grid()
+
+    # plt.savefig("Accuracy.png")
+    # plt.show()
+
+def graph_accuracy_with_methods(test_features_labels, nearest_neighbors, test_range):
+    true_labels = np.array([label for ignore, label in test_features_labels])
+    accuracies_all = []
+    for method in range(0, 3):
+        accuracies = []
+        for k in test_range:
+            predictions = []
+            for i in range(len(nearest_neighbors[method])):
+                predict = predict_on_test_data(nearest_neighbors[method][i], k)
+                predictions.append(predict)
+            predictions = np.array(predictions)
+            correct_predictions = np.sum(predictions == true_labels)
+            accuracy = correct_predictions / len(test_features_labels)
+            accuracies.append(accuracy)
+        accuracies_all.append([method, accuracies])
+    
+    
+    for method, accuracies in accuracies_all:
+        if method == 0:
+            plt.plot(test_range, accuracies, label="Flat", color="green")
+        elif method == 1:
+            plt.plot(test_range, accuracies, label="Chunk", color="blue")
+        elif method == 2:
+            plt.plot(test_range, accuracies, label="Histogram", color="red")
+        
     plt.xlim(min(test_range)-1, max(test_range)+1)
     plt.ylim(0, 1)
-
     plt.title("Model Accuracy")
     plt.ylabel("Accuracy")
     plt.xlabel("K (Number of neighbors)")
     plt.grid()
-
-    plt.savefig("Accuracy.png")
+    plt.legend(loc='lower right')
+    plt.savefig("accuracy.png")
     plt.show()
+
+def table_accuracy_with_methods(test_features_labels, nearest_neighbors, test_range):
+    true_labels = np.array([label for ignore, label in test_features_labels])
+    res = []
+    for k in test_range:
+        for method in range(0, 3):
+            predictions = []
+            for i in range(len(nearest_neighbors[method])):
+                predict = predict_on_test_data(nearest_neighbors[method][i], k)
+                predictions.append(predict)
+            predictions = np.array(predictions)
+            correct_predictions = np.sum(predictions == true_labels)
+            accuracy = correct_predictions / len(test_features_labels)
+            res.append([k, method, accuracy])    
+
+    with open('accuracy_table.csv', mode='w', newline='', encoding='utf-8') as file:
+        writer = csv.writer(file)
+        writer.writerow(["k", "flat", "chunk", "histogram"])  # Tiêu đề cột
+        for k in test_range:
+            flat_accuracy = next((x[2] for x in res if x[0] == k and x[1] == 0), None)
+            chunk_accuracy = next((x[2] for x in res if x[0] == k and x[1] == 1), None)
+            histogram_accuracy = next((x[2] for x in res if x[0] == k and x[1] == 2), None)
+            writer.writerow([k, flat_accuracy, chunk_accuracy, histogram_accuracy])
 
 
 def probability_percentage_of_each_digit(extract_methods, test_feature_label, nearest_neighbors, index, k):
