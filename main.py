@@ -1,5 +1,6 @@
 import process
 import predict
+from matplotlib import pyplot as plt
 
 K = 10
 
@@ -43,21 +44,23 @@ def main():
         2: "HISTOGRAM"
     }
 
-    '''
-    # Print probability percentage of each digit
-    for i in range(0, 3):
-        print("ANS =", y_test[i])
-        accuracies = predict.probability_percentage_of_each_digit(extract_methods, x_test[i], data, i, 1000)
-        for method_name, accuracy in accuracies:
-            print(f"{method_name}'s prediction: ")
-            for i in range(10):
-                print(f"{i}: {round(accuracy[i] * 100, 2)}%")
-    '''
-    print("ANS =", y_test[0])
-    results = predict.predict_with_methods(x_test[0], K, extract_methods, combined_train_flat, combined_train_chunk, combined_train_histogram)
+    fig, ax = plt.subplots(nrows=3, ncols=3, sharex=True, sharey=True)
+    ax = ax.flatten()
 
-    for method_name, answer in results:
-        print(f"{method_name}'s prediction: {answer}")
+    cnt = 0
+    for i in range(3):
+        results = predict.predict_with_methods(x_test[i], K, extract_methods, combined_train_flat, combined_train_chunk, combined_train_histogram)
+
+        for method_name, answer in results:
+            ax[cnt].imshow(x_test[i], cmap="binary_r", interpolation="nearest")
+            ax[cnt].set_title(f"{method_name}:{answer} - {'True' if (answer == y_test[i]) else 'False'}", fontsize=8)
+            cnt += 1
+
+    for a in ax:
+        a.set_xticks([])
+        a.set_yticks([])
+    plt.tight_layout()
+    plt.show()
 
 if __name__ == "__main__":
     main()
