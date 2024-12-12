@@ -32,11 +32,12 @@ def main():
     flat_data = predict.load_binary(flat_nearest_vectors)
     chunk_data = predict.load_binary(chunk_nearest_vectors)
     histogram_data = predict.load_binary(histogram_nearest_vectors)
+    data = [flat_data, chunk_data, histogram_data]
 
     test_range = range(1, 1001)
     predict.graph_accuracy_in_range(combined_test_flat, flat_data, test_range)
     '''
-
+    
     extract_methods = {
         0: "FLAT",
         1: "CHUNK",
