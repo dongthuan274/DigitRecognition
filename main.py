@@ -44,12 +44,14 @@ def main():
         2: "HISTOGRAM"
     }
 
+    k_values = [3,6,24]
+    
     fig, ax = plt.subplots(nrows=3, ncols=3, sharex=True, sharey=True)
     ax = ax.flatten()
 
     cnt = 0
     for i in range(3):
-        results = predict.predict_with_methods(x_test[i], K, extract_methods, combined_train_flat, combined_train_chunk, combined_train_histogram)
+        results = predict.predict_with_methods(x_test[i], extract_methods, k_values, combined_train_flat, combined_train_chunk, combined_train_histogram)
 
         for method_name, answer in results:
             ax[cnt].imshow(x_test[i], cmap="binary_r", interpolation="nearest")
