@@ -52,16 +52,17 @@ def predict_label(vectorized_image, k, comparing_features_labels):
     predict = np.bincount(np.array(k_nearest_labels)).argmax()
     return predict
 
-def predict_with_methods(image, k, extract_methods, *methods_data):
+def predict_with_methods(image, extract_methods, k_values = 50, *methods_data):
     #Return predictions with different extract methods
 
     results = []
     image = image.reshape((1, 28, 28))
     image_features = process.extract_features(image)
     for i in range(len(extract_methods)):
+        k = k_values[i]
         # Append [Method name, predict]
         results.append([extract_methods[i], predict_label(image_features[i][0], k, methods_data[i])])
-
+        
     return results
 
 def graph_accuracy_in_range(test_features_labels, nearest_neighbors, test_range):
