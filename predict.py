@@ -52,7 +52,7 @@ def predict_label(vectorized_image, k, comparing_features_labels):
     predict = np.bincount(np.array(k_nearest_labels)).argmax()
     return predict
 
-def predict_with_methods(image, extract_methods, k_values = 50, *methods_data):
+def predict_with_methods(image, extract_methods, k_values = [50, 50, 50], *methods_data):
     #Return predictions with different extract methods
 
     results = []
@@ -65,7 +65,7 @@ def predict_with_methods(image, extract_methods, k_values = 50, *methods_data):
         
     return results
 
-def graph_accuracy_in_range(test_features_labels, nearest_neighbors, test_range):
+def find_optimize_k(test_features_labels, nearest_neighbors, test_range):
     true_labels = np.array([label for ignore, label in test_features_labels])
     accuracies = []
     for k in test_range:
@@ -77,18 +77,7 @@ def graph_accuracy_in_range(test_features_labels, nearest_neighbors, test_range)
         correct_predictions = np.sum(predictions == true_labels)
         accuracy = correct_predictions / len(test_features_labels)
         accuracies.append(accuracy)
-
-    # plt.plot(test_range, accuracies, color="green")
-    # plt.xlim(min(test_range)-1, max(test_range)+1)
-    # plt.ylim(0, 1)
-
-    # plt.title("Model Accuracy")
-    # plt.ylabel("Accuracy")
-    # plt.xlabel("K (Number of neighbors)")
-    # plt.grid()
-
-    # plt.savefig("Accuracy.png")
-    # plt.show()
+    return np.array(accuracies).argmax() + 1
 
 def graph_accuracy_with_methods(test_features_labels, nearest_neighbors, test_range):
     true_labels = np.array([label for ignore, label in test_features_labels])
