@@ -11,41 +11,99 @@ K_MAX = 1000
 def calculate_dist(vector1, vector2):
     return np.sqrt(np.sum((vector1 - vector2) ** 2))
 
-def gen_nearest_k_vectors(test_features_labels, train_features_labels, output_file, k=K_MAX):
-    if os.path.exists(output_file):
+def gen_k_nearest_labels(joint_test, joint_train, path, k=K_MAX):
+    if os.path.exists(path):
         return
 
-    nearest_neighbors = []
-    # nearest_neighbors[i] = an array of nearest neighbors of i-th image in test
+    nearest_labels_lst = []
+    # nearest_neighbors_lst[i] = an array of nearest neighbors of i-th image in test
 
-    for test_features, test_label in test_features_labels:
+    for test_features, test_label in joint_test:
         distances = []
-        for train_features, train_label in train_features_labels:
+        for train_features, train_label in joint_train:
             dist = calculate_dist(test_features, train_features)
             distances.append((dist, train_label))
         distances.sort(key=lambda x: x[0]) # Sort by distance
         k_nearest_labels = [train_label for ignore, train_label in distances[:k]] # Save k nearest labels
-        nearest_neighbors.append(k_nearest_labels)
+        nearest_labels_lst.append(k_nearest_labels)
 
-    with open(output_file, 'wb') as f:
-        pickle.dump(nearest_neighbors, f) # Save to file, don't have to calculate again
+    with open(path, 'wb') as f:
+        pickle.dump(nearest_labels_lst, f) # Save to file, don't have to calculate again
 
-def load_binary(file_name):
-    with open(file_name, 'rb') as file:
+def load_binary(path):
+    with open(path, 'rb') as file:
         data = pickle.load(file)
     return data
 
-def predict_on_test_data(nearest_neighbors, k):
+def predict_on_test_data(nearest_labels, k):
     # Use for preprocessed data (distance was calculated)
-    k_nearest = nearest_neighbors[:k]
+    k_nearest = nearest_labels[:k]
     return np.bincount(k_nearest).argmax()
 
-def predict_label(vectorized_image, k, comparing_features_labels):
+def graph_test_accuracy(joint_test, nearest_labels_lst, k_range):
+    true_labels = np.array([label for ignore, label in joint_test])
+    accuracies_all = []
+    for method in range(0, 3):
+        accuracies = []
+        for k in k_range:
+            predictions = []
+            for i in range(len(nearest_labels_lst[method])):
+                predict = predict_on_test_data(nearest_labels_lst[method][i], k)
+                predictions.append(predict)
+            predictions = np.array(predictions)
+            correct_predictions = np.sum(predictions == true_labels)
+            accuracy = correct_predictions / len(joint_test)
+            accuracies.append(accuracy)
+        accuracies_all.append([method, accuracies])
+
+
+    for method, accuracies in accuracies_all:
+        if method == 0:
+            plt.plot(k_range, accuracies, label="Flat", color="green")
+        elif method == 1:
+            plt.plot(k_range, accuracies, label="Chunk", color="blue")
+        elif method == 2:
+            plt.plot(k_range, accuracies, label="Histogram", color="red")
+
+    plt.xlim(min(k_range)-1, max(k_range)+1)
+    plt.ylim(0, 1)
+    plt.title("Model Accuracy")
+    plt.ylabel("Accuracy")
+    plt.xlabel("K (Number of neighbors)")
+    plt.grid()
+    plt.legend(loc='lower right')
+    plt.savefig("accuracy.png")
+    plt.show()
+
+def table_accuracy_with_methods(joint_test, nearest_labels_lst, k_range):
+    true_labels = np.array([label for ignore, label in joint_test])
+    res = []
+    for k in k_range:
+        for method in range(0, 3):
+            predictions = []
+            for i in range(len(nearest_labels_lst[method])):
+                predict = predict_on_test_data(nearest_labels_lst[method][i], k)
+                predictions.append(predict)
+            predictions = np.array(predictions)
+            correct_predictions = np.sum(predictions == true_labels)
+            accuracy = correct_predictions / len(joint_test)
+            res.append([k, method, accuracy])
+
+    with open('accuracy_table.csv', mode='w', newline='', encoding='utf-8') as file:
+        writer = csv.writer(file)
+        writer.writerow(["k", "flat", "chunk", "histogram"])  # Tiêu đề cột
+        for k in k_range:
+            flat_accuracy = next((x[2] for x in res if x[0] == k and x[1] == 0), None)
+            chunk_accuracy = next((x[2] for x in res if x[0] == k and x[1] == 1), None)
+            histogram_accuracy = next((x[2] for x in res if x[0] == k and x[1] == 2), None)
+            writer.writerow([k, flat_accuracy, chunk_accuracy, histogram_accuracy])
+
+def predict_label(feature, k, joint_compare):
     # Use for input data (distance was not calculated)
 
     distances = []
-    for comparing_feature, comparing_label in comparing_features_labels:
-        dist = calculate_dist(vectorized_image, comparing_feature)
+    for comparing_feature, comparing_label in joint_compare:
+        dist = calculate_dist(feature, comparing_feature)
         distances.append([dist, comparing_label])
     distances.sort(key=lambda x: x[0])
     k_nearest_labels = [label for ignore, label in distances[:k]]
@@ -62,87 +120,29 @@ def predict_with_methods(image, extract_methods, k_values = [50, 50, 50], *metho
         k = k_values[i]
         # Append [Method name, predict]
         results.append([extract_methods[i], predict_label(image_features[i][0], k, methods_data[i])])
-        
+
     return results
 
-def find_optimize_k(test_features_labels, nearest_neighbors, test_range):
-    true_labels = np.array([label for ignore, label in test_features_labels])
+def find_optimize_k(joint_test, nearest_labels_lst, k_range):
+    true_labels = np.array([label for ignore, label in joint_test])
     accuracies = []
-    for k in test_range:
+    for k in k_range:
         predictions = []
-        for i in range(len(nearest_neighbors)):
-            predict = predict_on_test_data(nearest_neighbors[i], k)
+        for i in range(len(nearest_labels_lst)):
+            predict = predict_on_test_data(nearest_labels_lst[i], k)
             predictions.append(predict)
         predictions = np.array(predictions)
         correct_predictions = np.sum(predictions == true_labels)
-        accuracy = correct_predictions / len(test_features_labels)
+        accuracy = correct_predictions / len(joint_test)
         accuracies.append(accuracy)
     return np.array(accuracies).argmax() + 1
 
-def graph_accuracy_with_methods(test_features_labels, nearest_neighbors, test_range):
-    true_labels = np.array([label for ignore, label in test_features_labels])
-    accuracies_all = []
-    for method in range(0, 3):
-        accuracies = []
-        for k in test_range:
-            predictions = []
-            for i in range(len(nearest_neighbors[method])):
-                predict = predict_on_test_data(nearest_neighbors[method][i], k)
-                predictions.append(predict)
-            predictions = np.array(predictions)
-            correct_predictions = np.sum(predictions == true_labels)
-            accuracy = correct_predictions / len(test_features_labels)
-            accuracies.append(accuracy)
-        accuracies_all.append([method, accuracies])
-    
-    
-    for method, accuracies in accuracies_all:
-        if method == 0:
-            plt.plot(test_range, accuracies, label="Flat", color="green")
-        elif method == 1:
-            plt.plot(test_range, accuracies, label="Chunk", color="blue")
-        elif method == 2:
-            plt.plot(test_range, accuracies, label="Histogram", color="red")
-        
-    plt.xlim(min(test_range)-1, max(test_range)+1)
-    plt.ylim(0, 1)
-    plt.title("Model Accuracy")
-    plt.ylabel("Accuracy")
-    plt.xlabel("K (Number of neighbors)")
-    plt.grid()
-    plt.legend(loc='lower right')
-    plt.savefig("accuracy.png")
-    plt.show()
 
-def table_accuracy_with_methods(test_features_labels, nearest_neighbors, test_range):
-    true_labels = np.array([label for ignore, label in test_features_labels])
-    res = []
-    for k in test_range:
-        for method in range(0, 3):
-            predictions = []
-            for i in range(len(nearest_neighbors[method])):
-                predict = predict_on_test_data(nearest_neighbors[method][i], k)
-                predictions.append(predict)
-            predictions = np.array(predictions)
-            correct_predictions = np.sum(predictions == true_labels)
-            accuracy = correct_predictions / len(test_features_labels)
-            res.append([k, method, accuracy])    
-
-    with open('accuracy_table.csv', mode='w', newline='', encoding='utf-8') as file:
-        writer = csv.writer(file)
-        writer.writerow(["k", "flat", "chunk", "histogram"])  # Tiêu đề cột
-        for k in test_range:
-            flat_accuracy = next((x[2] for x in res if x[0] == k and x[1] == 0), None)
-            chunk_accuracy = next((x[2] for x in res if x[0] == k and x[1] == 1), None)
-            histogram_accuracy = next((x[2] for x in res if x[0] == k and x[1] == 2), None)
-            writer.writerow([k, flat_accuracy, chunk_accuracy, histogram_accuracy])
-
-
-def probability_percentage_of_each_digit(extract_methods, test_feature_label, nearest_neighbors, index, k):
+def probability_percentage_of_each_digit(extract_methods, joint_test, nearest_labels_lst, index, k):
     frequents = []
     for i in range(len(extract_methods)):
-        frequents.append(np.bincount(nearest_neighbors[i][index][:k], minlength=10))
-        
+        frequents.append(np.bincount(nearest_labels_lst[i][index][:k], minlength=10))
+
     result = []
     for i in range(len(extract_methods)):
         accuracy = []
@@ -150,4 +150,3 @@ def probability_percentage_of_each_digit(extract_methods, test_feature_label, ne
             accuracy.append(frequents[i][x] / k)
         result.append([extract_methods[i], accuracy])
     return result
-    

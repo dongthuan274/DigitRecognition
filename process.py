@@ -25,14 +25,14 @@ def load_mnist(path, kind="train"):
 
     return images, labels
 
-def flat_vectorize(images):
+def vectorize(images):
     '''
-    flatten() convert image matrix (2D) to vector (1D) using
+    flatten() convert image matrix (2D) to vector (1D)
     '''
     flat_vectors = [image.flatten() / 255.0 for image in images]
     return np.array(flat_vectors)
 
-def chunk_vectorize(images, rows_per_chunk = 4, cols_per_chunk = 4):
+def sampling(images, rows_per_chunk = 4, cols_per_chunk = 4):
     '''
     reshape() image matrix (2D) to 4D
     mean() to calculate average value of every chunk
@@ -56,7 +56,7 @@ def chunk_vectorize(images, rows_per_chunk = 4, cols_per_chunk = 4):
 
     return np.array(chunk_vectors)
 
-def histogram_vectorize(images):
+def histogram(images):
     '''
     numsbin = number of blocks
     histogram() calculate frequency of element in 1D array
@@ -73,14 +73,15 @@ def histogram_vectorize(images):
     return np.array(histogram_vectors)
 
 def extract_features(images):
-    flat_vectors = flat_vectorize(images)
-    chunk_vectors = chunk_vectorize(images)
-    histogram_vectors = histogram_vectorize(images)
+    flat_vectors = vectorize(images)
+    chunk_vectors = sampling(images)
+    histogram_vectors = histogram(images)
 
     return flat_vectors, chunk_vectors, histogram_vectors
 
-def combine(vectorized_images, labels):
+def combine(features, labels):
     combined_list = []
-    for vectorized_image, label in zip(vectorized_images, labels):
-        combined_list.append([vectorized_image, label])
+    for feature, label in zip(features, labels):
+        combined_list.append([feature, label])
     return combined_list
+
