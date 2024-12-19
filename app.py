@@ -6,7 +6,7 @@ import predict
 import numpy as np
 
 K = 76
-
+k_values = [3,6,24]
 extract_methods = {
     0: "FLAT",
     1: "CHUNK",
@@ -36,7 +36,7 @@ def load_data():
 
 def solve(image_aray):
     combined_train_flat, combined_train_chunk, combined_train_histogram = load_data()
-    results = predict.predict_with_methods(image_array, K, extract_methods, combined_train_flat, combined_train_chunk, combined_train_histogram)
+    results = predict.predict_with_methods(image_array, extract_methods, k_values, combined_train_flat, combined_train_chunk, combined_train_histogram)
 
     for method_name, answer in results:
         st.write(f"{method_name}'s prediction: {answer}")
@@ -57,7 +57,7 @@ if option == "Upload Image":
         if uploaded_file is not None:
             raw_image = Image.open(uploaded_file)
             image_array = fix(raw_image)
-            st.write(image_array)
+            # st.write(image_array)
 
             if st.button("Submit"):
                 solve(image_array)
@@ -83,7 +83,7 @@ if option == "Draw":
         if canvas_result.image_data is not None:
             raw_image = Image.fromarray(canvas_result.image_data.astype('uint8'))
             image_array = fix(raw_image)
-            st.write(image_array)
+            # st.write(image_array)
 
             if st.button("Submit"):
                 solve(image_array)
