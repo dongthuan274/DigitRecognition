@@ -29,9 +29,8 @@ def main():
     histogram_data = predict.load_binary(histogram_nearest_vectors)
 
     k_range = range(1, 1001)
-    predict.graph_test_accuracy(combined_test_flat, flat_data, k_range)
-    #predict.graph_test_accuracy(combined_test_chunk, chunk_data, k_range)
-    #predict.graph_test_accuracy(combined_test_histogram, histogram_data, k_range)
+    data = [flat_data, chunk_data, histogram_data]
+    predict.graph_test_accuracy(combined_test_flat, data, k_range)
     print("Sampling optimized k for test =", find_optimize_k(combined_test_chunk, chunk_data, k_range)
 
 if __name__ == "__main__":
